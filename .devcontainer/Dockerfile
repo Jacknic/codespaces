@@ -1,8 +1,8 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.236.0/containers/java/.devcontainer/base.Dockerfile
 
-# [Choice] Java version (use -bullseye variants on local arm64/Apple Silicon): 11, 17, 11-bullseye, 17-bullseye, 11-buster, 17-buster
-ARG VARIANT="17-bullseye"
-FROM mcr.microsoft.com/vscode/devcontainers/java:0-${VARIANT}
+# [Choice] Debian OS version (use bullseye on local arm64/Apple Silicon): buster, bullseye
+ARG VARIANT="buster"
+FROM mcr.microsoft.com/vscode/devcontainers/java:1-8-${VARIANT}
 
 # [Option] Install Maven
 ARG INSTALL_MAVEN="false"
@@ -23,3 +23,18 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
 
 # [Optional] Uncomment this line to install global node packages.
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
+
+ENV ANDROID_HOME /opt/android-sdk-linux
+
+RUN apt update -qq && apt install wget zip unzip
+
+RUN cd /opt && \
+    wget https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
+    unzip -q *.zip -d ${ANDROID_HOME} && \
+    rm *.zip
+RUN chmod -R 777 ${ANDROID_HOME}
+
+RUN apt clean -qq
+
+USER vscode
+ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
